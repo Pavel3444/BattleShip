@@ -1,7 +1,9 @@
 namespace BattleShip;
 
-public class Game
+public sealed class Game
 {
+    private Board _playerBoard;
+    private Board _machineBoard;
     public void Start()
     {
         GameState userChoice;
@@ -54,9 +56,19 @@ public class Game
         Console.WriteLine("0. Quit");
     }
 
+    private void PrintBoard()
+    {
+        Console.WriteLine("Your board:\n");
+        _playerBoard.Print();
+        Console.WriteLine("\nComputer's board:\n");
+        _machineBoard.Print();
+    }
+    
     private void New()
     {
-        Console.WriteLine("New");
+        _playerBoard = new Board();
+        _machineBoard = new Board();
+        PrintBoard();
     }
 
     private void Save()
