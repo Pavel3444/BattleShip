@@ -8,7 +8,7 @@ internal sealed class Cell
     {
         return State switch
         {
-            CellState.Empty or CellState.Unbroken or CellState.Alongside => "*",
+            CellState.Empty or CellState.Alongside => "*",
             CellState.Damaged or CellState.Destroyed => "X",
             _ => "?"
         };

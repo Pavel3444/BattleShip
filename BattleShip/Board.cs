@@ -55,15 +55,28 @@ internal sealed class Board
 
     private void CalculateShip(int shipSize)
     {
-        Random rnd = new ();
-        Line line = (Line)rnd.Next(0, 2);;
+        Random rnd = new();
+        Line line = (Line)rnd.Next(0, 2);
+
         int x;
         int y;
+        bool placed;
+
         do
         {
-             x = rnd.Next(0, 10);
-             y = rnd.Next(0, 10);
-        } while (!TryPlaceShip(line, shipSize,x, y));
+            if (line == Line.Horizontal)
+            {
+                 x = rnd.Next(0, BoardSide - shipSize + 1);
+                y = rnd.Next(0, BoardSide);
+            }
+            else
+            {
+                 x = rnd.Next(0, BoardSide);
+                y = rnd.Next(0, BoardSide - shipSize + 1);
+            }
+
+            placed = TryPlaceShip(line, shipSize, x, y);
+        } while (!placed);
     }
 
     private bool TryPlaceShip(Line line, int shipSize, int x, int y)
@@ -72,23 +85,26 @@ internal sealed class Board
         {
             Line.Horizontal => TryPlaceShipHorizontal(shipSize, x, y),
             Line.Vertical => TryPlaceShipVertical(shipSize, x, y),
-            _ => true
+            _ => false
         };
     }
 
     private bool TryPlaceShipHorizontal(int shipSize, int x, int y)
     {
-        int leftCoord = x > BoardSide - shipSize ? x - shipSize + 1 : x;
-        int rightCoord = x < BoardSide - shipSize ? x : x + shipSize - 1;
-        int leftIndex = leftCoord -1 < 0 ? 0 : leftCoord -1;
-        int rightIndex = rightCoord +1 > BoardSide -1 ? BoardSide-1 : rightCoord +1;
-        int lowIndex = y < 0 ? 0 : y - 1;
-        int highIndex = y > BoardSide - 1 ? BoardSide - 1 : y + 1;
+        int leftCoord = x;
+        int rightCoord = x + shipSize - 1;
+
+        if (rightCoord >= BoardSide) return false;
+
+        int leftIndex = Math.Max(0, leftCoord - 1);
+        int rightIndex = Math.Min(BoardSide - 1, rightCoord + 1);
+        int lowIndex = Math.Max(0, y - 1);
+        int highIndex = Math.Min(BoardSide - 1, y + 1);
 
         if (HasNeighbour(leftIndex, rightIndex, lowIndex, highIndex))
             return false;
-        
-        for (int h = leftCoord; h <= BoardSide; h++)
+
+        for (int h = leftCoord; h <= rightCoord; h++)
         {
             _board[y, h].State = CellState.Unbroken;
         }
@@ -98,11 +114,40 @@ internal sealed class Board
 
     private bool TryPlaceShipVertical(int shipSize, int x, int y)
     {
-        throw new NotImplementedException();
+        int lowCoord = y;
+        int highCoord = y + shipSize - 1;
+
+         if (highCoord >= BoardSide) return false;
+
+        int lowIndex = Math.Max(0, lowCoord - 1);
+        int highIndex = Math.Min(BoardSide - 1, highCoord + 1);
+        int leftIndex = Math.Max(0, x - 1);
+        int rightIndex = Math.Min(BoardSide - 1, x + 1);
+
+        if (HasNeighbour(leftIndex, rightIndex, lowIndex, highIndex))
+            return false;
+
+        for (int v = lowCoord; v <= highCoord; v++)
+        {
+            _board[v, x].State = CellState.Unbroken;
+        }
+
+        return true;
     }
 
-    private bool HasNeighbour(int x, int y, int z, int w)
+    private bool HasNeighbour(int leftIndex, int rightIndex, int lowIndex, int highIndex)
     {
-        throw new NotImplementedException();
+        for (int v = lowIndex; v <= highIndex; v++)
+        {
+            for (int h = leftIndex; h <= rightIndex; h++)
+            {
+                if (_board[v,h].State == CellState.Unbroken)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }
